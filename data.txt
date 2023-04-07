@@ -1,0 +1,2 @@
+BODY='{"name":"ABC", "level":"preschool", "contact":"Tom Smith",
+    "phone":"111-3456", "email":"abc@yahoo.com"}'
