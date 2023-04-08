@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/taulib/orange/internal/data"
+	"github.com/taulib/orange/internal/validator"
 )
 
 func (app *application) createSchoolHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,6 +29,26 @@ func (app *application) createSchoolHandler(w http.ResponseWriter, r *http.Reque
 		app.badRequestResponse(w, r, err)
 		return
 	}
+	//Initialize a new validator instance
+	// copy the values form the input struct to a new school struct
+	school := &data.School{
+		Name:    input.Name,
+		Level:   input.Level,
+		Contact: input.Contact,
+		Phone:   input.Phone,
+		Email:   input.Email,
+		Website: input.Website,
+		Address: input.Address,
+		Mode:    input.Mode,
+	}
+	v := validator.New()
+
+	// check the map to see if there were any validation errors
+	if data.ValidateSchool(v, school); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
 	// Print the request
 	fmt.Fprintf(w, "%+v\n", input)
 }
