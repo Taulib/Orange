@@ -115,12 +115,16 @@ func (m SchoolModel) Get(id int64) (*School, error) {
 }
 
 // Update a school based on a identifier
+// Optimistic Locking (version Number)
+
 func (m SchoolModel) Update(school *School) error {
 	// create a query
 	query := `
 	UPDATE schools
-	SET name =$1, level = $2, contact =$3, phone = $4, email = $5, website = $6, address =$7,mode = $8, version = version + 1
+	SET name =$1, level = $2, contact =$3, phone = $4, email = $5, website = $6, 
+					address =$7,mode = $8, version = version + 1
 	WHERE id = $9
+	AND version = $10
 	RETURNING version
 	`
 	args := []interface{}{
@@ -133,8 +137,19 @@ func (m SchoolModel) Update(school *School) error {
 		school.Address,
 		pq.Array(school.Mode),
 		school.ID,
+		school.Version,
 	}
-	return m.DB.QueryRow(query, args...).Scan(&school.Version)
+	// check for edit conflicts
+	err := m.DB.QueryRow(query, args...).Scan(&school.Version)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+	return nil
 }
 
 // Delete a new school based on an identifier
