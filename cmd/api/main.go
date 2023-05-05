@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/taulib/orange/internal/data"
 )
 
 // A global variable to hold the application
@@ -34,6 +35,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	models data.Models
 }
 
 // setup the main() function
@@ -62,6 +64,7 @@ func main() {
 	app := &application{
 		config: cfg,
 		logger: logger,
+		models: data.NewModels(db),
 	}
 	// Create our server
 	srv := &http.Server{

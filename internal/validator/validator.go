@@ -1,5 +1,3 @@
-// Filename: internal/validator/validator.go
-
 package validator
 
 import (
@@ -8,28 +6,38 @@ import (
 )
 
 var (
-	EmailRx = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	PhoneRx = regexp.MustCompile(`^\+?\(?[0-9]{3}\)?\s?[0-9]{3}\s?-\s?[0-9]{4}S`)
+	EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	PhoneRX = regexp.MustCompile(`^\+?\(?[0-9]{3}\)?\s?-\s?[0-9]{3}\s?-\s?[0-9]{4}$`)
 )
 
-// We will create a type that wraps our validation errors map
+// We will create a map that will store validation errors
 type Validator struct {
 	Errors map[string]string
 }
 
-// New() creates a new validator instance
 func New() *Validator {
 	return &Validator{
 		Errors: make(map[string]string),
 	}
 }
 
-// Valid() checks the errors map ofr entries
+// Methods that operate on our Validator type
+// check if the map has any entries
 func (v *Validator) Valid() bool {
 	return len(v.Errors) == 0
 }
 
-// In() checks if an element can be found in the proivded list of elements
+// add an entry to the map if the key does
+// not already exist
+func (v *Validator) AddError(key string, message string) {
+	// check if the key is already in the map
+	if _, exists := v.Errors[key]; !exists {
+		v.Errors[key] = message
+	}
+}
+
+// check to see if an element can be found in a list
+// of items
 func In(element string, list ...string) bool {
 	for i := range list {
 		if element == list[i] {
@@ -39,32 +47,26 @@ func In(element string, list ...string) bool {
 	return false
 }
 
-// Matches() returns true if a string value matches a specific regex pattern
+// Matches() returns true if a string values matches
+// a specific regex pattern
 func Matches(value string, rx *regexp.Regexp) bool {
 	return rx.MatchString(value)
 }
 
-// ValidWebsite() checks if a string value is a valid web url
+// ValidWebsite() checks if a string value is a valid URL
 func ValidWebsite(website string) bool {
 	_, err := url.ParseRequestURI(website)
 	return err == nil
 }
 
-// AddError() adds an error entry to the errors map
-func (v *Validator) AddError(key, message string) {
-	if _, exists := v.Errors[key]; exists {
-		v.Errors[key] = message
-	}
-}
-
-// Check() performs the validation checks and calls the AddError Method in turn if an error entry needs to be added
-func (v *Validator) Check(ok bool, key, message string) {
+// Check() if we need to add an entry to the errors map
+func (v *Validator) Check(ok bool, key string, message string) {
 	if !ok {
 		v.AddError(key, message)
 	}
 }
 
-// Unique() checks that there are no repeating values in the slice
+// Unique() checks tha there are no repeating values in the slice
 func Unique(values []string) bool {
 	uniqueValues := make(map[string]bool)
 	for _, value := range values {
